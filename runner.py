@@ -1,6 +1,6 @@
 import random
 
-# Function to roll 3 dice and return their values
+# Dice roll function with docstring
 def roll_dice():
     return [random.randint(1, 6) for _ in range(3)]
 
