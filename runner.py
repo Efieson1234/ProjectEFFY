@@ -1,78 +1,82 @@
 import random
 
-def roll_dice(num_dice=3):
-    """Simulates rolling a given number of dice."""
-    return [random.randint(1, 6) for _ in range(num_dice)]
+# Function to roll 3 dice and return their values
+def roll_dice():
+    return [random.randint(1, 6) for _ in range(3)]
 
-def check_fixed_dice(dice):
-    """Checks for fixed dice (two of the same value)."""
-    counts = {x: dice.count(x) for x in set(dice)}
-    fixed = [num for num, count in counts.items() if count == 2]
-    return fixed
-
-def tuple_out(dice):
-    """Checks if all three dice have the same value (tupled out)."""
+# Function to check if all three dice have the same value (tuple out)
+def has_tuple_out(dice):
     return len(set(dice)) == 1
 
-def play_turn(player_name):
-    """Simulates one turn for a player."""
-    print(f"{player_name}'s Turn:")
-    dice = roll_dice()
-    print(f"Initial Roll: {dice}")
+# Function to find dice values that appear exactly twice (fixed dice)
+def get_fixed_dice(dice):
+    return [num for num in set(dice) if dice.count(num) == 2]
 
-    # Check if tupled out on the first roll
-    if tuple_out(dice):
-        print("Tuple Out! All dice have the same value. You score 0 points this turn.")
+# Function to play a single turn for a player
+def play_turn(player):
+    print(f"{player}'s turn!")
+    dice = roll_dice()  # Initial roll of 3 dice
+    print(f"You rolled: {dice}")
+
+    # Check for tuple out on the first roll
+    if has_tuple_out(dice):
+        print("Tuple Out! No points for this turn.")
         return 0
 
-    fixed_dice = check_fixed_dice(dice)
+    # Identify fixed dice (values appearing twice)
+    fixed = get_fixed_dice(dice)
     while True:
-        print(f"Fixed Dice: {fixed_dice if fixed_dice else 'None'}")
-        unfixed_indices = [i for i, die in enumerate(dice) if die not in fixed_dice]
+        print(f"Fixed dice: {fixed}")
+        unfixed_dice = [d for d in dice if d not in fixed]  # Dice that can still be rerolled
 
-        if not unfixed_indices:  # All dice are fixed
-            print("All dice are fixed. Ending turn.")
+        # If no dice can be rerolled, end the turn
+        if not unfixed_dice:
+            print("No dice left to reroll. Ending turn.")
             break
 
-        unfixed_dice = [dice[i] for i in unfixed_indices]
-        reroll = input(f"Do you want to re-roll the unfixed dice {unfixed_dice}? (yes/no): ").strip().lower()
-        if reroll != 'yes':
+        # Ask the player if they want to reroll the unfixed dice
+        choice = input(f"Re-roll the unfixed dice {unfixed_dice}? (yes/no): ").lower()
+        if choice != 'yes':
             break
 
-        # Re-roll only the unfixed dice
-        for i in unfixed_indices:
-            dice[i] = random.randint(1, 6)
+        # Reroll the unfixed dice
+        for i in range(3):
+            if dice[i] not in fixed:
+                dice[i] = random.randint(1, 6)
+        print(f"New roll: {dice}")
 
-        print(f"New Roll: {dice}")
-
-        # Check for tuple out
-        if tuple_out(dice):
-            print("Tuple Out! All dice have the same value. You score 0 points this turn.")
+        # Check if the new roll results in a tuple out
+        if has_tuple_out(dice):
+            print("Tuple Out! No points for this turn.")
             return 0
 
-        # Update fixed dice
-        fixed_dice = check_fixed_dice(dice)
+        # Update the fixed dice after reroll
+        fixed = get_fixed_dice(dice)
 
+    # Calculate the score as the sum of all dice
     score = sum(dice)
-    print(f"{player_name} ends their turn with {score} points.")
+    print(f"{player} scored {score} points this turn.")
     return score
 
+# Function to play the full game
 def play_game(target_score=30):
-    """Simulates the full game until one player reaches the target score."""
-    players = []
-    num_players = int(input("Enter the number of players: "))
-    for i in range(num_players):
-        players.append(input(f"Enter Player {i+1}'s name: ").strip())
+    print("Welcome to Tuple Out Dice Game!")
+    
+    # Ask for the number of players and their names
+    players = [input(f"Enter Player {i+1}'s name: ") for i in range(int(input("How many players? ")))]
+    scores = {player: 0 for player in players}  # Initialize scores for all players
 
-    scores = {player: 0 for player in players}
-
+    # Game loop: continue until one player reaches the target score
     while max(scores.values()) < target_score:
         for player in players:
-            print("\n" + "-" * 20)
-            scores[player] += play_turn(player)
-            print(f"Current Scores: {scores}")
+            print("-" * 20)
+            scores[player] += play_turn(player)  # Add turn score to the player's total score
+            print(f"Scores: {scores}")
+            
+            # Check if the player has won
             if scores[player] >= target_score:
-                print(f"\nCongratulations {player}! You reached {target_score} points and won the game!")
+                print(f"{player} wins with {scores[player]} points!")
                 return
 
-print("Welcome to the 'Tuple Out' Dice Game!")
+# Start the game
+play_game()
